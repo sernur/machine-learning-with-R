@@ -1,0 +1,86 @@
+---
+title: "PCA with machine learning"
+author: "Sergazy"
+date: "7/13/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+PCA with R.
+
+when do you want to use PCA?
+variables should be independent...
+and PCA should be less interpretable.. 
+
+
+PCA is not only dimension reduction.. 
+
+
+
+
+Feature reduction and  feature extraction
+
+```{r}
+dataset=read.csv('Wine.csv')
+```
+
+
+We need extra packages
+```{r}
+#install.packages('caTools')
+library(caTools)
+```
+Splitting the data into the Training and test
+```{r}
+set.seed(123)
+split= sample.split(dataset$Customer_Segment, SplitRatio = 0.8)
+training_set=subset(dataset,split==TRUE)
+test_set=subset(dataset,split==FALSE)
+```
+Feature scaling
+```{r}
+training_set[-14]=scale(training_set[-14])
+test_set[-14]=scale(test_set[-14])
+```
+
+
+We also need extra packages
+
+```{r}
+#install.packages('caret')
+library(lattice)
+library(ggplot2)
+library(caret)
+```
+
+
+```{r}
+pca=preProcess(x=training_set[-14], method='pca',pcaComp = 2)
+training_set=predict(pca,training_set)
+training_set=training_set[c(2,3,1)]
+test_set=predict(pca,test_set)
+test_set=test_set[c(2,3,1)]
+```
+
+
+```{r}
+#install.packages('e1071')
+library(e1071)
+classifier= svm(formula=Customer_Segment~.,data=training_set,type='C-classification', kernel='linear')
+
+```
+predict the result
+```{r}
+y_pred= predict(classifier, newdata = test_set[-3])
+```
+Making confusion matrix to see how we are doing.
+
+```{r}
+cm=table(test_set[,3],y_pred)
+cm
+```
+
